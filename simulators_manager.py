@@ -22,37 +22,38 @@ def list_simulators():
   console = Console()
   simulators = []
 
-  for device_dir in SIMULATORS_PATH.iterdir():
-    plist_file = device_dir / "device.plist"
-    if plist_file.exists():
-      try:
-        with open(plist_file, 'rb') as f:
-          plist_data = plistlib.load(f)
-        name = plist_data.get("name", "Unknown")
-        last_used = plist_data.get("lastBootedAt", None)
+  with console.status("[bold green]Scanning simulators...[/bold green]", spinner="dots"):
+    for device_dir in SIMULATORS_PATH.iterdir():
+      plist_file = device_dir / "device.plist"
+      if plist_file.exists():
+        try:
+          with open(plist_file, 'rb') as f:
+            plist_data = plistlib.load(f)
+          name = plist_data.get("name", "Unknown")
+          last_used = plist_data.get("lastBootedAt", None)
 
-        if isinstance(last_used, datetime.datetime):
-          last_used_fmt = last_used.strftime("%Y-%m-%d %H:%M")
-          sort_key = last_used
-        elif isinstance(last_used, str):
-          parsed = datetime.datetime.strptime(last_used, "%Y-%m-%dT%H:%M:%SZ")
-          last_used_fmt = parsed.strftime("%Y-%m-%d %H:%M")
-          sort_key = parsed
-        else:
-          last_used_fmt = "Never"
-          sort_key = datetime.datetime.min
+          if isinstance(last_used, datetime.datetime):
+            last_used_fmt = last_used.strftime("%Y-%m-%d %H:%M")
+            sort_key = last_used
+          elif isinstance(last_used, str):
+            parsed = datetime.datetime.strptime(last_used, "%Y-%m-%dT%H:%M:%SZ")
+            last_used_fmt = parsed.strftime("%Y-%m-%d %H:%M")
+            sort_key = parsed
+          else:
+            last_used_fmt = "Never"
+            sort_key = datetime.datetime.min
 
-        size_bytes = get_directory_size(device_dir)
-        size_gb = f"{round(size_bytes / (1024 ** 3), 2)} GB"
-        simulators.append({
-          "id": device_dir.name,
-          "name": name,
-          "size": size_gb,
-          "last_used": last_used_fmt,
-          "sort_key": sort_key
-        })
-      except Exception as e:
-        console.print(f"[red]Error reading {device_dir.name}: {e}[/red]")
+          size_bytes = get_directory_size(device_dir)
+          size_gb = f"{round(size_bytes / (1024 ** 3), 2)} GB"
+          simulators.append({
+            "id": device_dir.name,
+            "name": name,
+            "size": size_gb,
+            "last_used": last_used_fmt,
+            "sort_key": sort_key
+          })
+        except Exception as e:
+          console.print(f"[red]Error reading {device_dir.name}: {e}[/red]")
 
   if not simulators:
     console.print("[yellow]No simulators found.[/yellow]")
@@ -97,12 +98,13 @@ def list_previews():
   total_size = 0
   folders = []
 
-  for item in PREVIEWS_PATH.iterdir():
-    if item.is_dir():
-      size_bytes = get_directory_size(item)
-      size_gb = round(size_bytes / (1024 ** 3), 2)
-      total_size += size_bytes
-      folders.append((item.name, f"{size_gb} GB"))
+  with console.status("[bold green]Calculating preview cache size...[/bold green]", spinner="dots"):
+    for item in PREVIEWS_PATH.iterdir():
+      if item.is_dir():
+        size_bytes = get_directory_size(item)
+        size_gb = round(size_bytes / (1024 ** 3), 2)
+        total_size += size_bytes
+        folders.append((item.name, f"{size_gb} GB"))
 
   total_size_gb = round(total_size / (1024 ** 3), 2)
 
