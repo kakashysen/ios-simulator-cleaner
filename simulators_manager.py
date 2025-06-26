@@ -148,11 +148,19 @@ def main_menu():
         sims = list_simulators()
         if sims:
           sim_id = questionary.text("Enter simulator ID to delete").ask()
-          delete_simulator(sim_id)
+          confirm = questionary.confirm(f"⚠️ Are you absolutely sure you want to delete simulator '{sim_id}'?", default=False).ask()
+          if confirm:
+            delete_simulator(sim_id)
+          else:
+            console.print("[yellow]Deletion cancelled.[/yellow]")
       elif sim_action == "Delete All":
         confirm = questionary.confirm("Are you sure you want to delete ALL simulators?").ask()
         if confirm:
-          delete_all_simulators()
+          double_check = questionary.confirm("⚠️ This action is irreversible. Do you really want to proceed?", default=False).ask()
+          if double_check:
+            delete_all_simulators()
+          else:
+            console.print("[yellow]Deletion cancelled.[/yellow]")
 
     elif choice == "Manage SwiftUI Previews":
       preview_action = questionary.select(
