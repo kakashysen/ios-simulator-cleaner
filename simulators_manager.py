@@ -69,7 +69,8 @@ def list_simulators():
   table.add_column("Last Used", style="yellow")
 
   for sim in simulators:
-    table.add_row(sim["id"], sim["name"], sim["size"], sim["last_used"])
+    id_link = f"[link=file://{(SIMULATORS_PATH / sim['id']).as_posix()}]{sim['id']}[/link]"
+    table.add_row(id_link, sim["name"], sim["size"], sim["last_used"])
 
   console.print(table)
   return simulators
