@@ -6,6 +6,7 @@ import shutil
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt, Confirm
+import questionary
 
 console = Console()
 
@@ -17,7 +18,10 @@ def get_directory_size(path):
   return sum(f.stat().st_size for f in path.rglob('*') if f.is_file())
 
 def list_simulators():
+  from rich.table import Table
+  console = Console()
   simulators = []
+
   for device_dir in SIMULATORS_PATH.iterdir():
     plist_file = device_dir / "device.plist"
     if plist_file.exists():
@@ -25,14 +29,28 @@ def list_simulators():
         with open(plist_file, 'rb') as f:
           plist_data = plistlib.load(f)
         name = plist_data.get("name", "Unknown")
-        last_used_str = plist_data.get("lastBootedAt", None)
-        last_used = (
-          datetime.datetime.strptime(last_used_str, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d %H:%M")
-          if last_used_str else "Never"
-        )
+        last_used = plist_data.get("lastBootedAt", None)
+
+        if isinstance(last_used, datetime.datetime):
+          last_used_fmt = last_used.strftime("%Y-%m-%d %H:%M")
+          sort_key = last_used
+        elif isinstance(last_used, str):
+          parsed = datetime.datetime.strptime(last_used, "%Y-%m-%dT%H:%M:%SZ")
+          last_used_fmt = parsed.strftime("%Y-%m-%d %H:%M")
+          sort_key = parsed
+        else:
+          last_used_fmt = "Never"
+          sort_key = datetime.datetime.min
+
         size_bytes = get_directory_size(device_dir)
         size_gb = f"{round(size_bytes / (1024 ** 3), 2)} GB"
-        simulators.append((device_dir.name, name, size_gb, last_used))
+        simulators.append({
+          "id": device_dir.name,
+          "name": name,
+          "size": size_gb,
+          "last_used": last_used_fmt,
+          "sort_key": sort_key
+        })
       except Exception as e:
         console.print(f"[red]Error reading {device_dir.name}: {e}[/red]")
 
@@ -40,14 +58,19 @@ def list_simulators():
     console.print("[yellow]No simulators found.[/yellow]")
     return []
 
-  table = Table(title="iOS Simulators")
+  # ✅ Sort by last used (ascending = most recent at the bottom)
+  simulators.sort(key=lambda s: s["sort_key"])
+
+  # 🖥️ Build table
+  table = Table(title="iOS Simulators (Sorted by Last Used)")
   table.add_column("ID", style="cyan", overflow="fold")
   table.add_column("Name", style="green")
   table.add_column("Size", style="magenta", justify="right")
   table.add_column("Last Used", style="yellow")
 
   for sim in simulators:
-    table.add_row(*sim)
+    table.add_row(sim["id"], sim["name"], sim["size"], sim["last_used"])
+
   console.print(table)
   return simulators
 
@@ -103,33 +126,45 @@ def delete_previews():
 
 def main_menu():
   while True:
-    console.print("\n[bold blue]Main Menu:[/bold blue]")
-    console.print("1. Manage iOS Simulators")
-    console.print("2. Manage SwiftUI Previews")
-    console.print("3. Exit")
+    choice = questionary.select(
+      "Main Menu",
+      choices=[
+        "Manage iOS Simulators",
+        "Manage SwiftUI Previews",
+        "Exit"
+      ]
+    ).ask()
 
-    choice = Prompt.ask("Choose an option", choices=["1", "2", "3"])
+    if choice == "Manage iOS Simulators":
+      sim_action = questionary.select(
+        "Simulators: Choose action",
+        choices=["List", "Delete by ID", "Delete All", "Back"]
+      ).ask()
 
-    if choice == "1":
-      sim_action = Prompt.ask("\n[green]Simulators: Choose action[/green]", choices=["list", "delete", "delete_all", "back"])
-      if sim_action == "list":
+      if sim_action == "List":
         list_simulators()
-      elif sim_action == "delete":
+      elif sim_action == "Delete by ID":
         sims = list_simulators()
         if sims:
-          sim_id = Prompt.ask("Enter simulator ID to delete")
+          sim_id = questionary.text("Enter simulator ID to delete").ask()
           delete_simulator(sim_id)
-      elif sim_action == "delete_all":
-        delete_all_simulators()
+      elif sim_action == "Delete All":
+        confirm = questionary.confirm("Are you sure you want to delete ALL simulators?").ask()
+        if confirm:
+          delete_all_simulators()
 
-    elif choice == "2":
-      preview_action = Prompt.ask("\n[green]Previews: Choose action[/green]", choices=["list", "delete", "back"])
-      if preview_action == "list":
+    elif choice == "Manage SwiftUI Previews":
+      preview_action = questionary.select(
+        "Previews: Choose action",
+        choices=["List", "Delete", "Back"]
+      ).ask()
+
+      if preview_action == "List":
         list_previews()
-      elif preview_action == "delete":
+      elif preview_action == "Delete":
         delete_previews()
 
-    elif choice == "3":
+    elif choice == "Exit":
       console.print("[bold]Goodbye![/bold] 👋")
       break
 
