@@ -7,7 +7,7 @@
    - Owner: `kakashysen`
    - Repository: `kakashysen/ios-simulator-cleaner`
    - Workflow: `.github/workflows/release.yml`
-3. Add a `release.yml` workflow that triggers on tags, builds with `poetry build`, and runs `pypa/gh-action-pypi-publish@release/v1`.
+3. Configure the existing `.github/workflows/release.yml` workflow (added in v0.1.0+) to use the trusted publisher once PyPI authorisation is in place.
 
 ## Tap Auto-bump
 
