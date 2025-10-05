@@ -129,6 +129,6 @@ MIT License — free to use and modify.
 
 ## 📬 Author
 
-Created by [Jose Aponte](https://github.com/joseaponte) to keep your Mac clean and your dev environment efficient.
+Created by [Jose Aponte](https://github.com/kakashysen) to keep your Mac clean and your dev environment efficient.
 
 Contributions are welcome!
