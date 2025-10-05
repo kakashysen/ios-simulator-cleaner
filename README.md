@@ -60,7 +60,24 @@ poetry install
 ### 3. Run the tool
 
 ```bash
-poetry run python simulators_manager.py
+poetry run ios-simulator-cleaner
+```
+
+---
+
+## 📥 Installation (Preview)
+
+Once tagged and released you will be able to install the latest version via Homebrew:
+
+```bash
+brew tap kakashysen/ios-simulator-cleaner
+brew install ios-simulator-cleaner
+```
+
+Until the tap is published you can install directly from source:
+
+```bash
+pip install git+https://github.com/kakashysen/ios-simulator-cleaner.git
 ```
 
 ---
