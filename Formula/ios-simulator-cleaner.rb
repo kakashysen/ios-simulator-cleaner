@@ -7,7 +7,7 @@ class IosSimulatorCleaner < Formula
   desc "List and clean iOS simulators and SwiftUI previews"
   homepage "https://github.com/kakashysen/ios-simulator-cleaner"
   url "https://github.com/kakashysen/ios-simulator-cleaner/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "REPLACE_WITH_RELEASE_TARBALL_SHA256"
+  sha256 "48ed5f4e1e326f8e424c27000b1d51399474faac320d846918cc3ab84760c9a7"
   license "MIT"
   head "https://github.com/kakashysen/ios-simulator-cleaner.git", branch: "main"
 
